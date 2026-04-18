@@ -1,4 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
+<!--
+Desafio Tecnico Topaz
+Desenvolvido por L.A.Leandro
+São José dos Campos - SP
+18-04-2026
+-->
 <project xmlns="http://maven.apache.org/POM/4.0.0"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 
@@ -10,7 +16,7 @@
     <version>1.0.0</version>
     <packaging>war</packaging>
     
-    <name>URL Shortener - Topaz Challenge</name>
+    <name>URL Shortener</name>
     <description>URL Shortener service with JAX-RS and Java EE 7</description>
     
     <properties>
