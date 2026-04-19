@@ -132,6 +132,14 @@ São José dos Campos - SP
             <version>9.4.53.v20231009</version>
         </dependency>
         
+        <!-- JUnit -->
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <version>4.12</version>
+            <scope>test</scope>
+        </dependency>
+        
         <dependency>
             <groupId>org.eclipse.jetty</groupId>
             <artifactId>jetty-servlet</artifactId>
@@ -179,6 +187,16 @@ São José dos Campos - SP
                 </configuration>
             </plugin>
             
+            <!-- Exec Plugin for development -->
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>exec-maven-plugin</artifactId>
+                <version>3.1.0</version>
+                <configuration>
+                    <mainClass>com.topaz.urlshortener.Main</mainClass>
+                </configuration>
+            </plugin>
+
             <!-- Jetty Plugin for development -->
             <plugin>
                 <groupId>org.eclipse.jetty</groupId>
@@ -188,7 +206,8 @@ São José dos Campos - SP
                     <httpPort>8080</httpPort>
                 </configuration>
             </plugin>
-        </plugins>
+
+            </plugins>
     </build>
     
     <profiles>

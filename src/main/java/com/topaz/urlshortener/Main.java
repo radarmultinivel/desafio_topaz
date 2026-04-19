@@ -35,7 +35,7 @@ public class Main {
         context.addServlet(IndexServlet.class, "/");
         context.addServlet(ReadmeServlet.class, "/readme");
         context.addServlet(ShortenServlet.class, "/api/shorten");
-        context.addServlet(RedirectServlet.class, "/api/*");
+        context.addServlet(RedirectServlet.class, "/*");
         context.addServlet(InfoServlet.class, "/api/info/*");
         context.addServlet(HealthServlet.class, "/api/health");
         
@@ -203,8 +203,8 @@ public class Main {
                         return;
                     }
                     if (aliasExists(alias)) {
-                        resp.setStatus(400);
-                        resp.getWriter().write("{\"error\":\"Alias ja esta em uso\"}");
+                        resp.setStatus(200);
+                        resp.getWriter().write("{\"error\":\"Alias Já está em uso. Escolha outro.\"}");
                         return;
                     }
                     shortCode = alias;
@@ -232,21 +232,25 @@ public class Main {
             try {
                 String pathInfo = req.getPathInfo();
                 if (pathInfo == null || pathInfo.isEmpty() || pathInfo.equals("/")) {
-                    resp.setContentType("application/json");
-                    resp.setStatus(404);
-                    resp.getWriter().write("{\"error\":\"Nao encontrado\"}");
+                    req.getRequestDispatcher("/index.html").forward(req, resp);
                     return;
                 }
                 
                 String shortCode = pathInfo.substring(1);
+                if (shortCode.contains("/")) {
+                    req.getRequestDispatcher("/index.html").forward(req, resp);
+                    return;
+                }
+                
                 String originalUrl = getOriginalUrl(shortCode);
                 
                 if (originalUrl == null) {
-                    resp.setContentType("application/json");
-                    resp.setStatus(404);
-                    resp.getWriter().write("{\"error\":\"Codigo nao encontrado\"}");
+                    req.getRequestDispatcher("/index.html").forward(req, resp);
                     return;
                 }
+                
+                incrementAccessCount(shortCode);
+                resp.sendRedirect(originalUrl);
                 
                 incrementAccessCount(shortCode);
                 resp.sendRedirect(originalUrl);
@@ -314,38 +318,128 @@ public class Main {
             "<head>" +
             "  <meta charset='UTF-8'>" +
             "  <meta name='viewport' content='width=device-width, initial-scale=1.0'>" +
-            "  <title>URL Shortener</title>" +
+            "  <title>URL Shortener - README</title>" +
             "  <style>" +
             "    * { box-sizing: border-box; margin: 0; padding: 0; }" +
             "    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #f5f5f5; color: #333; line-height: 1.6; }" +
-            "    .container { max-width: 600px; margin: 40px auto; padding: 0 20px; }" +
-            "    .box { background: white; padding: 30px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }" +
-            "    h1 { color: #333; margin-bottom: 20px; }" +
-            "    code { background: #f5f5f5; padding: 2px 6px; border-radius: 4px; font-family: monospace; }" +
+            "    .container { max-width: 800px; margin: 40px auto; padding: 0 20px; }" +
+            "    .box { background: white; padding: 30px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); margin-bottom: 20px; }" +
+            "    h1 { color: #333; margin-bottom: 20px; border-bottom: 2px solid #007bff; padding-bottom: 10px; }" +
+            "    h2 { color: #007bff; margin-top: 30px; margin-bottom: 15px; }" +
+            "    h3 { color: #555; margin-top: 20px; margin-bottom: 10px; }" +
+            "    code { background: #f5f5f5; padding: 2px 6px; border-radius: 4px; font-family: monospace; color: #d63384; }" +
             "    pre { background: #1e1e1e; color: #d4d4d4; padding: 15px; border-radius: 6px; overflow-x: auto; }" +
             "    pre code { background: none; padding: 0; }" +
             "    a { color: #007bff; text-decoration: none; }" +
             "    a:hover { text-decoration: underline; }" +
             "    ul { margin-left: 20px; }" +
             "    li { margin-bottom: 8px; }" +
+            "    .badge { display: inline-block; background: #28a745; color: white; padding: 4px 12px; border-radius: 20px; font-size: 12px; margin-right: 8px; }" +
+            "    .badge-tech { display: inline-block; background: #007bff; color: white; padding: 4px 12px; border-radius: 20px; font-size: 12px; margin-right: 8px; }" +
+            "    .note { background: #fff3cd; border-left: 4px solid #ffc107; padding: 15px; margin: 20px 0; border-radius: 4px; }" +
+            "    table { width: 100%; border-collapse: collapse; margin: 20px 0; }" +
+            "    th, td { padding: 12px; text-align: left; border-bottom: 1px solid #ddd; }" +
+            "    th { background: #f5f5f5; }" +
             "  </style>" +
             "</head>" +
             "<body>" +
             "  <div class='container'>" +
             "    <div class='box'>" +
-            "      <h1>URL Shortener</h1>" +
-            "      <p><a href='/'>&larr; Voltar</a></p>" +
-            "      <h2>APIs</h2>" +
-            "      <ul>" +
-            "        <li><code>GET /</code> - Pagina principal</li>" +
-            "        <li><code>POST /api/shorten</code> - Encurtar URL</li>" +
-            "        <li><code>GET /api/{code}</code> - Redirecionar</li>" +
-            "        <li><code>GET /api/info/{code}</code> - Info</li>" +
-            "        <li><code>GET /api/health</code> - Health</li>" +
-            "      </ul>" +
-            "      <h2>Running</h2>" +
+            "      <h1>URL Shortener - Desafio Técnico Topaz</h1>" +
+            "      <p><a href='/'>&larr; Voltar para Página Principal</a></p>" +
+            "" +
+            "      <h2>Sobre o Projeto</h2>" +
+            "      <p>Este projeto é um <strong>Encurtador de URLs</strong> desenvolvido como desafio técnico para a empresa Topaz.</p>" +
+            "      <p>Stack tecnológica: <span class='badge-tech'>Java 8</span> <span class='badge-tech'>JAX-RS</span> <span class='badge-tech'>JPA + Hibernate</span> <span class='badge-tech'>CDI</span> <span class='badge-tech'>WildFly 10</span></p>" +
+            "" +
+            "      <h2>1. Como Rodar o Projeto</h2>" +
+            "" +
+            "      <h3>Modo Desenvolvimento (Jetty)</h3>" +
             "      <pre><code>mvn clean compile\nmvn jetty:run</code></pre>" +
-            "      <p>Access: <code>http://localhost:8080/</code></p>" +
+            "      <p>Acesse: <code>http://localhost:8080/</code></p>" +
+            "" +
+            "      <h3>Modo Produção (WildFly 10)</h3>" +
+            "      <pre><code>mvn clean package\n# Copie o WAR para wildfly-10/standalone/deployments/\ncp target/url-shortener.war $WILDFLY_HOME/standalone/deployments/\n# Inicie o servidor\n$WILDFLY_HOME/bin/standalone.sh</code></pre>" +
+            "      <p>Acesse: <code>http://localhost:8080/url-shortener/</code></p>" +
+            "" +
+            "      <h2>2. APIs REST</h2>" +
+            "      <table>" +
+            "        <tr><th>Método</th><th>Endpoint</th><th>Descrição</th></tr>" +
+            "        <tr><td>GET</td><td><code>/</code></td><td>Página principal</td></tr>" +
+            "        <tr><td>POST</td><td><code>/api/shorten</code></td><td>Encurtar URL</td></tr>" +
+            "        <tr><td>GET</td><td><code>/{code}</code></td><td>Redirecionar para URL original</td></tr>" +
+            "        <tr><td>GET</td><td><code>/api/info/{code}</code></td><td>Informações da URL</td></tr>" +
+            "        <tr><td>GET</td><td><code>/api/health</code></td><td>Health check</td></tr>" +
+            "      </table>" +
+            "" +
+            "      <h3>Exemplo de Uso</h3>" +
+            "      <pre><code># Encurtar URL\ncurl -X POST http://localhost:8080/api/shorten -d \"url=https://google.com&alias=google\"\n\n# Resposta\n{\"shortUrl\":\"http://localhost:8080/google\",\"shortCode\":\"google\",\"originalUrl\":\"https://google.com\",\"alias\":\"google\",\"accessCount\":0}\n\n# Redirect\ncurl -v http://localhost:8080/google\n# HTTP/1.1 302 Found\n# Location: https://google.com</code></pre>" +
+            "" +
+            "      <h2>3. Decisões de Design</h2>" +
+            "" +
+            "      <h3>Arquitetura em Camadas</h3>" +
+            "      <p>O projeto segue o padrão de arquitetura em camadas:</p>" +
+            "      <ul>" +
+            "        <li><strong>Resource (JAX-RS)</strong>: Endpoints REST API</li>" +
+            "        <li><strong>Service</strong>: Lógica de negócio</li>" +
+            "        <li><strong>Repository (JPA)</strong>: Persistência CDI</li>" +
+            "        <li><strong>Entity</strong>: Modelo de dados</li>" +
+            "      </ul>" +
+            "" +
+            "      <h3>Algoritmo Base62</h3>" +
+            "      <p>Usamos <strong>Base62</strong> para gerar shortcodes curtos:</p>" +
+            "      <ul>" +
+            "        <li>Caracteres: 0-9, a-z, A-Z (62 caracteres)</li>" +
+            "        <li>Exemplo: ID 1000 → \"sC\"</li>" +
+            "        <li>Códigos curtos e amigáveis</li>" +
+            "      </ul>" +
+            "" +
+            "      <h3>Sincronização</h3>" +
+            "      <p>Usamos <code>synchronized</code> para garantir que cada requisição seja processada de forma sincronizada, evitando códigos duplicados em cenários de concorrência.</p>" +
+            "" +
+            "      <h3>Redirect HTTP 303</h3>" +
+            "      <p>Usamos HTTP 303 (See Other) para redirect temporário. Isso indica que o recurso foi substituído pelo destino.</p>" +
+            "" +
+            "      <h2>4. Stack Tecnológica</h2>" +
+            "      <table>" +
+            "        <tr><th>Tecnologia</th><th>Versão</th><th>Justificativa</th></tr>" +
+            "        <tr><td>Java</td><td>8</td><td>Requisito do desafio (stack da empresa)</td></tr>" +
+            "        <tr><td>JAX-RS</td><td>2.0</td><td>API REST padrão Java EE 7</td></tr>" +
+            "        <tr><td>JPA + Hibernate</td><td>5.1</td><td>Persistência com ORM</td></tr>" +
+            "        <tr><td>CDI</td><td>1.2</td><td>Injeção de dependência</td></tr>" +
+            "        <tr><td>WildFly</td><td>10</td><td>Servidor Java EE 7</td></tr>" +
+            "        <tr><td>H2</td><td>1.4</td><td>Banco em memória para desenvolvimento</td></tr>" +
+            "      </table>" +
+            "" +
+            "      <h2>5. O que Faria Diferente com Mais Tempo</h2>" +
+            "" +
+            "      <h3>Melhorias Prioritárias</h3>" +
+            "      <ul>" +
+            "        <li><strong>Cache Redis</strong>: Reduzir latência em reads frequentes</li>" +
+            "        <li><strong>Métricas</strong>: Analytics de cliques por URL</li>" +
+            "        <li><strong>QR Code</strong>: Geração automática de QR Code</li>" +
+            "        <li><strong>Expiração</strong>: URLs temporárias com data de expiração</li>" +
+            "      </ul>" +
+            "" +
+            "      <h3>Evoluções Técnicas</h3>" +
+            "      <ul>" +
+            "        <li><strong>PostgreSQL</strong>: Substituir H2 por banco relacional em produção</li>" +
+            "        <li><strong>Autenticação</strong>: Controle de acesso com OAuth2</li>" +
+            "        <li><strong>API Key</strong>: Limitar requisições por cliente</li>" +
+            "        <li><strong>Testes de Integração</strong>: Cobertura maior com MockMvc</li>" +
+            "      </ul>" +
+            "" +
+            "      <h3>Trade-offs</h3>" +
+            "      <ul>" +
+            "        <li>Usamos <code>synchronized</code> em vez de fila assíncrona (simplicidade)</li>" +
+            "        <li>H2 em memória (desenvolvimento fácil) vs PostgreSQL (produção)</li>" +
+            "        <li>Redirect 303 (temporário) vs 301 (permanente) - SEO menor impacto</li>" +
+            "      </ul>" +
+            "" +
+            "      <h2>6. Autor</h2>" +
+            "      <p><strong>Desenvolvedor:</strong> L.A.Leandro</p>" +
+            "      <p><strong>Data:</strong> 18-04-2026</p>" +
+            "      <p><strong>Local:</strong> São José dos Campos - SP</p>" +
             "    </div>" +
             "  </div>" +
             "</body>" +
@@ -453,7 +547,7 @@ public class Main {
             "        xhr.send(body);" +
             "        if (xhr.status === 200) {" +
             "          var data = eval('(' + xhr.responseText + ')');" +
-            "          if (data.error) { errorDiv.innerHTML = data.error; errorDiv.style.display = 'block'; }" +
+            "          if (data.error) { if (data.error.indexOf('Alias') !== -1 || data.error.indexOf('alias') !== -1 || data.error.indexOf('já') !== -1) { errorDiv.innerHTML = 'Alias já está em uso. Escolha outro.'; } else { errorDiv.innerHTML = data.error; } errorDiv.style.display = 'block'; }" +
             "          else { resultDiv.innerHTML = '<div class=\"result\"><h3>URL Encurtada:</h3><input type=\"text\" id=\"shortUrl\" value=\"' + data.shortUrl + '\" readonly><div class=\"info\">Codigo: ' + data.shortCode + '</div><div class=\"info\">Acessos: ' + data.accessCount + '</div></div>'; resultDiv.style.display = 'block'; }" +
             "        } else { errorDiv.innerHTML = 'Erro ao conectar'; errorDiv.style.display = 'block'; }" +
             "      } catch(e) { errorDiv.innerHTML = 'Erro: ' + e.message; errorDiv.style.display = 'block'; }" +
